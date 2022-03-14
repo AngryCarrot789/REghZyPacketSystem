@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <DocumentationFile>bin\Release\REghZyPacketSystem.Serial.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.IO.Ports" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\REghZyPacketSystem\REghZyPacketSystem.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="REghZy.Streams, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>..\..\REghZy\DLL\REghZy.Streams.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

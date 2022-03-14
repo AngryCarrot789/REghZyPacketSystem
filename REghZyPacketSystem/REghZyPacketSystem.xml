@@ -1,0 +1,1443 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>REghZyPacketSystem</name>
+    </assembly>
+    <members>
+        <member name="T:REghZyPacketSystem.Connections.BaseConnection">
+            <summary>
+            Represents a connection to a data stream, with an ability to connect and disconnect
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Connections.BaseConnection.isDisposed">
+            <summary>
+            Whether this instance is being disposed or not
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.BaseConnection.Stream">
+            <summary>
+            The data stream this connection has open
+            <para>
+            This may be null if <see cref="P:REghZyPacketSystem.Connections.BaseConnection.IsConnected"/> returns false
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.BaseConnection.IsConnected">
+            <summary>
+            Indicates whether this connection is open or not.
+            This also indicates whether the input/output streams are available (they may be null if this is false)
+            <para>
+            Calling <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Connect"/> should result in this being <see langword="true"/>
+            </para>
+            <para>
+            Calling <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Disconnect"/> should result in this being <see langword="false"/>
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.BaseConnection.Connect">
+            <summary>
+            Creates the connection, allowing data to be read and written
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.BaseConnection.Disconnect">
+            <summary>
+            Breaks the connection, stopping data from being read and written
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.BaseConnection.Restart">
+            <summary>
+            Disconnects and then connects
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Serial.SerialConnection">
+            <summary>
+            A wrapper for a serial port, containing a data stream
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Serial.SerialDataStream">
+            <summary>
+            A data stream that uses the <see cref="P:System.IO.Ports.SerialPort.BaseStream"/> for reading and writing data
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Socketing.NetworkDataStream">
+            <summary>
+            A data stream that uses a <see cref="T:System.Net.Sockets.NetworkStream"/> as an underlying stream for reading/writing data
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Socketing.SocketHelper">
+            <summary>
+            Set the scene: My computer, and an arduino. Even though an arduino can't run C# code... still
+            <para>
+            The arduino is the server, and it invokes <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.AcceptClientConnection(System.Net.Sockets.Socket)"/>. This will wait
+            until my computer has tried to connect to it, and once it has, it begins sending/receiving packets
+            </para>
+            <para>
+            My computer makes a connection to the arduino by calling <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.MakeConnectionToServer(System.Net.EndPoint)"/>. It sits
+            there and waits until the arduino accepts it (it will call <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.AcceptClientConnection(System.Net.Sockets.Socket)"/>). And
+            then it begins sending/receiving packets
+            </para>
+            <para>
+            The reason the arduino is the server, is because it just is because i want it to be :-) and its easier
+            </para>
+            <para>
+            Whereas, my computer, it only needs that arduino connection, and no other connections
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.CreateServerSocket(System.Net.EndPoint,System.Net.Sockets.AddressFamily,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            This is typically used server side, to create the listener socket for accepting clients
+            </summary>
+            <param name="localEndPoint">The end point that this server is located at</param>
+            <param name="addressFamily">The address family</param>
+            <param name="socketType">
+            The type of socket this will be. This should usually be
+            a stream, because the connections are built around streams
+            </param>
+            <param name="protocolType">The protocol to use (e.g tcp, udp, etc)</param>
+            <returns>
+            The socket that is pre-bound to the given local end point (no need to call <see cref="M:System.Net.Sockets.Socket.Bind(System.Net.EndPoint)"/>)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.CreateServerSocket(System.Net.EndPoint,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            This is typically used server side, to create the listener socket for accepting clients
+            </summary>
+            <param name="localEndPoint">The end point that this server is located at</param>
+            <param name="addressFamily">The address family</param>
+            <param name="socketType">
+            The type of socket this will be. This should usually be
+            a stream, because the connections are built around streams
+            </param>
+            <param name="protocolType">The protocol to use (e.g tcp, udp, etc)</param>
+            <returns>
+            The socket that is pre-bound to the given local end point (no need to call <see cref="M:System.Net.Sockets.Socket.Bind(System.Net.EndPoint)"/>)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.CreateServerSocket(System.Net.IPAddress,System.Int32,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            Creates a socket (with the given socket type and protocol) and binds it to the given IP address and the given port
+            </summary>
+            <param name="address">The local IP address to bind to</param>
+            <param name="port">The port to use</param>
+            <param name="socketType">The socket type to use (usually should be stream, because that's what the packet systems use)</param>
+            <param name="protocolType">The protocol to use (TCP recommended, otherwise packet loss is probable)</param>
+            <returns>
+            A socket that is bound to the given port on the given IP. It is not in a listening state, that must be done manually
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.CreateServerSocket(System.Int32,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            Creates a socket (with the given socket type and protocol) and binds it to <see cref="F:System.Net.IPAddress.Any"/> and the given port
+            </summary>
+            <param name="port">The port to use</param>
+            <param name="socketType">The socket type to use (usually should be stream, because that's what the packet systems use)</param>
+            <param name="protocolType">The protocol to use (TCP recommended, otherwise packet loss is probable)</param>
+            <returns>
+            A socket that is bound to the given port on <see cref="F:System.Net.IPAddress.Any"/>. It is not in a listening state, that must be done manually
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.MakeConnectionToServer(System.Net.EndPoint)">
+            <summary>
+            We are the client, and we want to make a connection to the server
+            <para>
+            You don't need to call <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Connect"/>, it will be done automatically in this method
+            </para>
+            </summary>
+            <returns>
+            A connection that is already connected
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.MakeConnectionToServer(System.Net.IPAddress,System.Int32)">
+            <summary>
+            We are the client, and we want to make a connection to the server
+            <para>
+            You don't need to call <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Connect"/>, it will be done automatically in this method
+            </para>
+            </summary>
+            <returns>
+            A connection that is already connected
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Connections.Socketing.SocketHelper.AcceptClientConnection(System.Net.Sockets.Socket)">
+            <summary>
+            We are the server, and we want to accept any incomming connection from clients
+            <para>
+            You don't need to call <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Connect"/> on the packet network that
+            this method returns, it won't do anything. See <see cref="T:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection"/>;
+            it's a one-time connection, you must create a new instance to have a new connection
+            </para>
+            </summary>
+            <param name="server">The server connection</param>
+            <returns>
+            A connection that is connected to client
+            </returns>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection">
+            <summary>
+            Represents a one-time connection to the client. When this class is instantated, it is
+            assumed that the socket is already open. So calling <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Connect"/> will do nothing
+            <para>
+            Calling <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Disconnect"/> will fully disconenct and dispose of the socket, 
+            meaning you cannot reconnect (it will throw an exception if you try to invoke <see cref="M:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Connect"/>,
+            just for the sake of bug tracking)
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Stream">
+            <summary>
+            The data stream which is linked to the server
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.IsConnected">
+            <summary>
+            Whether this client is connected to the server
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Client">
+            <summary>
+            The socket that this connection is connected to
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToClientConnection.Server">
+            <summary>
+            The server that this connection uses
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Connections.Socketing.SocketToServerConnection">
+            <summary>
+            A reusable client connection. This will wait until the server has 
+            accepted a socket connection, and then allowing data to be transceived
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToServerConnection.Stream">
+            <summary>
+            The data stream which is linked to the server
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToServerConnection.IsConnected">
+            <summary>
+            Whether this client is connected to the server
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Connections.Socketing.SocketToServerConnection.Socket">
+            <summary>
+            The socket which links to the server
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Exceptions.DataLossException">
+            <summary>
+            An exception used to indicate data loss, typically when reading packets
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Exceptions.PacketCreationException">
+            <summary>
+            Thrown when the creation of a packet failed
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Exceptions.PacketHandlerException">
+            <summary>
+            An exception that is thrown when a packet handler failed to handle a packet properly
+            <para>
+            The inner exception will be the exception that was thrown
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Exceptions.PacketHandlerException.Packet">
+            <summary>
+            The packet that was involved (it could be modified since it was received)
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Exceptions.PacketHandlerException.IsListener">
+            <summary>
+            Whether the handler was a listener. True if so, false if it was a handler
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Exceptions.PacketHandlerException.Priority">
+            <summary>
+            The priority of the handler/listener that threw the exception
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Exceptions.PacketPayloadException">
+            <summary>
+            An exception to represent an error with a packet's payload
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.AckProcessor`1">
+            <summary>
+            A helper class for processing ACK packets. Generally, there should only be 1 instance of the
+            AckProcessor per packet type (each implementation is usually a singleton). Atleast, that's the intention
+            </summary>
+            <typeparam name="TPacket">The type of ACK packet that this processor will processs</typeparam>
+        </member>
+        <member name="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.AllowResendPacket">
+            <summary>
+            States whether packets will be re-sent if they aren't received after a specific amount of time (see <see cref="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.PacketResendTime"/>)
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.PacketResendTime">
+            <summary>
+            The amount of time to wait before sending another packet, only if a responce isn't received within this time period (in milliseconds)
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.AllowDuplicatedKey">
+            <summary>
+            States whether to process packets that use a key that's already been processed
+            <para>
+            This is false by default
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.SendRequest(`0)">
+            <summary>
+            Sets up the given packet's key and destination for you, and sends the packet, returning the ID of the packet
+            <para>
+            This packet is now participating in the ACK transaction, therefore, no other packets should be sent until
+            the responce has been received (aka a packet, that this processor processes,
+            is received in direction <see cref="F:REghZyPacketSystem.Packeting.Ack.Destination.ToClient"/>)
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.ReceiveResponceAsync(System.UInt32)">
+            <summary>
+            Asynchronously waits until an ACK packet (of this processor's generic type) is received and whose key is the given key.
+            <para>
+            See <see cref="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.AllowResendPacket"/> to allow re-sending packets if they aren't received after <see cref="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.PacketResendTime"/>
+            </para>
+            </summary>
+            <param name="key">
+            The key that the received ACK packet (of this processor's generic
+            type) must have, in order for this method to return
+            </param>
+            <returns>
+            The packet that the server has sent
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.MakeRequestAsync(`0)">
+            <summary>
+            Sends a request and awaits its responce asynchronously
+            </summary>
+            <param name="packet">The packet to send to the server</param>
+            <returns>
+            The packet sent back from the server
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.SendBackFromAck(`0,`0)">
+            <summary>
+            A helper function for sending a packet back to the client. It automatically sets the key from <paramref name="fromClient"/>,
+            and sets the destination code to <see cref="!:DestinationCode.ToClient"/>.
+            <para>
+            This method just sets the key, and then invokes <see cref="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.SendBackFromAck(`0)"/>
+            </para>
+            </summary>
+            <param name="fromClient">The original packet received from the client</param>
+            <param name="toClient">The new packet that contains custom responce data</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.SendBackFromAck(`0)">
+            <summary>
+            A helper function for sending a packet back to the client. It automatically sets the destination for you,
+            and then adds the packet to the send packet cache (in case a request is made with the same ID),
+            and then sends the given packet again (with the destination code of <see cref="!:DestinationCode.ToClient"/>)
+            </summary>
+            <param name="packet">The packet to send to the client</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.HandleResendPacket(`0)">
+            <summary>
+            Re-sends the request to the server, usually used if a response not being received
+            <para>
+            This can be overridden to remove the retransmission functionality (although setting <see cref="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.AllowResendPacket"/> would be easier),
+            or for altering how packets are re-sent (or removing the console logging)
+            </para>
+            </summary>
+            <param name="packet">
+            The packet that was originally sent to the server (the one that was created client side)
+            </param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.HandleRepeatIdempotency(`0)">
+            <summary>
+            Called when a packet is received with an idempotency key that was already processed
+            <para>
+            By default, this just logs it to the console, and returns true
+            </para>
+            </summary>
+            <param name="packet">
+            The packet (from the client) containing the repeated idempotency key
+            </param>
+            <returns>
+            Whether to continue handling the packet. If false, then stop processing the packet. Otherwise, process it.
+            This method just specified what to actually do when a repeated key is received.
+            Usually, this method just returns <see cref="P:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.AllowDuplicatedKey"/>. That property isn't checked before this method runs,
+            so it's up to this method to check it; it could be true or false
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.OnProcessPacketFromClient(`0)">
+            <summary>
+            This will be called if we are the server. It is called when we receive a packet from the client,
+            aka the mid-way between getting and receiving data (that is, if the ACK packet is used for that)
+            <para>
+            If the client wanted data (which is usually the usage for ACK packets), the packet in the parameters  will usually
+            contain request information, which will be used to fill in data for a new packet, and then be sent to the client
+            </para>
+            </summary>
+            <returns>
+            <see langword="true"/> if the packet is fully handled, and should't be sent anywhere else (see <see cref="M:REghZyPacketSystem.Systems.Handling.IHandler.Handle(REghZyPacketSystem.Packeting.Packet)"/>),
+            <see langword="false"/> if the packet shouldn't be handled, and can possibly be sent to other handlers/listeners
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.OnProcessPacketFromServer(`0)">
+            <summary>
+            This will only be called if this is the client. It is called when we (the client)
+            receive a packet from the server (usually after the server runs <see cref="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.OnProcessPacketFromClient(`0)"/>)
+            <para>
+            If the client wanted data (which is usually the usage for ACK packets),
+            the packet in the parameters will usually contain the information requested
+            </para>
+            <para>
+            Usually, this method is empty, because you usually use the <see cref="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.ReceiveResponceAsync(System.UInt32)"/>
+            method. But that method relies on <see cref="F:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.readCache"/> containing the packet, and the packet is
+            only placed in there once this method returns <see langword="true"/>
+            </para>
+            <para>
+            And if this returns <see langword="false"/>, then <see cref="M:REghZyPacketSystem.Packeting.Ack.AckProcessor`1.ReceiveResponceAsync(System.UInt32)"/> will never return,
+            essentially meaning you completely ignore the packet (although listeners
+            that use <see cref="F:REghZyPacketSystem.Systems.Handling.Priority.HIGHEST"/> will be able to sniff it)
+            </para>
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.Attribs.BothSidesAttribute">
+            <summary>
+            This is used for both client and server side processing
+            <para>
+            Whether something is client side or server side isn't entirely dependent on which instance of the program is running,
+            nor whether packets are sent or received. It depends mostly on what the purpose is.
+            </para>
+            <para>
+            The server can be both a client and a server, so it depends on the perspective
+            </para>
+            <para>
+            In ACK packets, the "client" sends a packet, the "server" receives it and sends a new packet back, and then the "client" receives it.
+            But the "server" could also do this too. It could send a packet to the client, the client receives it and sends one back, and the server receives it.
+            </para>
+            <para>
+            So this annotation should be used if the purpose is for both the "client" and "server" (e.g receiving any packet; the client and server both receive packets)
+            </para>
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.Attribs.ClientSideAttribute">
+            <summary>
+            This is only used for client-based processing
+            <para>
+            Whether something is client side or server side isn't entirely dependent on which instance of the program is running,
+            nor whether packets are sent or received. It depends mostly on what the purpose is.
+            </para>
+            <para>
+            The client can be both a client and a server, so it depends on the perspective
+            </para>
+            <para>
+            In ACK packets, the "client" sends a packet, the "server" receives it and sends a new packet back, and then the "client" receives it.
+            But the "server" could also do this too. It could send a packet to the client, the client receives it and sends one back, and the server receives it.
+            </para>
+            <para>
+            So this annotation should be used if the purpose is being the "receiver" or "client", independent of what piece of software is running
+            </para>
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.Attribs.ServerSideAttribute">
+            <summary>
+            This is only used for server-based processing
+            <para>
+            Whether something is client side or server side isn't entirely dependent on which instance of the program is running,
+            nor whether packets are sent or received. It depends mostly on what the purpose is.
+            </para>
+            <para>
+            The server can be both a client and a server, so it depends on the perspective
+            </para>
+            <para>
+            In ACK packets, the "client" sends a packet, the "server" receives it and sends a new packet back, and then the "client" receives it.
+            But the "server" could also do this too. It could send a packet to the client, the client receives it and sends one back, and the server receives it.
+            </para>
+            <para>
+            So this annotation should be used if the purpose is being the "sender" or "server", independent of what piece of software is running
+            </para>
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.Destination">
+            <summary>
+            The ACK packet direction
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Packeting.Ack.Destination.ToServer">
+            <summary>
+            This packet is going to the server
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Packeting.Ack.Destination.Ack">
+            <summary>
+            This packet is being acknowledged by the server
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Packeting.Ack.Destination.ToClient">
+            <summary>
+            This packet is going to the client
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore">
+            <summary>
+            A class for efficiently storing idempotency keys
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.highest">
+            <summary>
+            Used for quickly checking if a key has been used
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node.AddAfter(REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node)">
+            <summary>
+            Makes this node the given node's next node
+            </summary>
+            <param name="node">The new previous node</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node.AddBefore(REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node)">
+            <summary>
+            Makes this node the given node's previous node
+            </summary>
+            <param name="node">The new next node</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node.Remove">
+            <summary>
+            Connects the prev and next together, removing this entirely
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node.Invalidate">
+            <summary>
+            Sets the next and prev nodes to null
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node.InsertBetween(REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node,REghZyPacketSystem.Packeting.Ack.IdempotencyKeyStore.Node)">
+            <summary>
+            Inserts this node inbetween the 2 other nodes (making sure to connect all of the next/prev nodes of the given nodes too)
+            </summary>
+            <param name="a"></param>
+            <param name="b"></param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.GetPayloadSizeToServer">
+            <summary>
+            The size of the payload that is being sent to the server. This is
+            used if <see cref="F:REghZyPacketSystem.Packeting.Ack.PacketACK.destination"/> is set to <see cref="F:REghZyPacketSystem.Packeting.Ack.Destination.ToServer"/>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.GetPayloadSizeToClient">
+            <summary>
+            The size of the payload that is being sent to the client. This is
+            used if <see cref="F:REghZyPacketSystem.Packeting.Ack.PacketACK.destination"/> is set to <see cref="F:REghZyPacketSystem.Packeting.Ack.Destination.ToClient"/>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.ReadPayloadFromClient(REghZy.Streams.IDataInput,System.UInt16)">
+            <summary>
+            Reads the data that the client has sent to the server (this will be executed server side)
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.ReadPayloadFromServer(REghZy.Streams.IDataInput,System.UInt16)">
+            <summary>
+            Reads the data that the server has sent to the client (this will be executed client side)
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.WritePayloadToServer(REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes the data to the server (this will be executed client side)
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Ack.PacketACK.WritePayloadToClient(REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes the data to the client (this will be executed server side)
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Packet.GetPayloadSize">
+            <summary>
+            The number of bytes in the packet's payload
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Packet.ReadPayLoad(REghZy.Streams.IDataInput,System.UInt16)">
+            <summary>
+            Reads all of the packet's payload from the given input.
+            The payload length is also specified, because it's sent in the packet header
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Packet.WritePayload(REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes all of the packet's payload into the given data output
+            </summary>
+            <param name="output"></param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Packet.WritePacket(REghZyPacketSystem.Packeting.Packet,REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes the given packet to the given data output
+            <para>
+            Writes the protocol header, then packet header, and then the packet's payload
+            </para>
+            </summary>
+            <param name="packet">The packet to write</param>
+            <param name="output">The data output to write to</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.Packet.ReadPacket(REghZy.Streams.IDataInput)">
+            <summary>
+            Reads a packet from the given data stream
+            <para>
+            Reads the protocol header, then packet header, and then the packet's payload
+            </para>
+            </summary>
+            <param name="input">The data input to read from</param>
+            <returns>
+            A packet (non-null)
+            </returns>
+        </member>
+        <member name="T:REghZyPacketSystem.Packeting.PacketImplementation">
+            <summary>
+            A implementation of a packet. This is used to locate unloaded packet classes during app startup
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.GetBytesWL(System.Byte[])">
+            <summary>
+            Gets the byte array's length with a label
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.GetBytesUTF16WL(System.String)">
+            <summary>
+            Gets the number of bytes in the string (including the length label size), based on UTF-16 (2 bytes per character)
+            </summary>
+            <returns>
+            2 bytes (length label), plus the length of the string multiplied by 2 (0 if the string is empty).
+            This will never return below 2 (due to the length label)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.GetBytesUTF16NL(System.String)">
+            <summary>
+            Gets the number of bytes in the string (without a length label), based on UTF-16 (2 bytes per character)
+            </summary>
+            <returns>
+            The length of the string multiplied by 2 (0 if the string is empty)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.GetBytesUTF8WL(System.String)">
+            <summary>
+            Gets the number of bytes in the string (including the length label size), based on UTF-8 (1 byte per character)
+            </summary>
+            <returns>
+            2 bytes (length label), plus the length of the string (0 if the string is empty).
+            This will never return below 2 (due to the length label)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.GetBytesUTF8NL(System.String)">
+            <summary>
+            Gets the number of bytes in the string (without a length label), based on UTF-8 (1 byte per character)
+            </summary>
+            <returns>
+            The length of the string (0 if the string is empty)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.WriteUTF16WL(System.Char[],REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes 2 bytes (a short, being the length of the string), and 2 bytes for each each character of the given char array
+            </summary>
+            <param name="value">The chars to write</param>
+            <param name="output">The data output to write to</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.WriteUTF16WL(System.String,REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes 2 bytes (a short, being the length of the string), and 2 bytes for each character of the given character array
+            <para>
+            If the given string is null, it will simply write 2 bytes of value '0' (resulting in an empty string being received on the other side)
+            </para>
+            </summary>
+            <param name="value">The string to write</param>
+            <param name="output">The data output to write to</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.WriteUTF8WL(System.Char[],REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes 2 bytes (a short, being the length of the string), and 1 byte (the low byte) of each character of the given char array
+            </summary>
+            <param name="value">The chars to write</param>
+            <param name="output">The data output to write to</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.WriteUTF8WL(System.String,REghZy.Streams.IDataOutput)">
+            <summary>
+            Writes 2 bytes (a short, being the length of the string), and 1 byte (the low byte) of each character of the given string
+            <para>
+            If the given string is null, it will simply write 2 bytes of value '0' (resulting in an empty string being received on the other side)
+            </para>
+            </summary>
+            <param name="value">The string to write</param>
+            <param name="output">The data output to write to</param>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.ReadStringUTF16WL(REghZy.Streams.IDataInput)">
+            <summary>
+            Reads 2 bytes (being the length of a string) as a short value, and reads that many characters (2 bytes per character)
+            </summary>
+            <param name="input">The data input</param>
+            <returns>A string</returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.ReadStringUTF8WL(REghZy.Streams.IDataInput)">
+            <summary>
+            Reads 2 bytes (being the length of a string) as a short value, and reads that many characters/bytes
+            </summary>
+            <param name="input">The data input</param>
+            <returns>A string</returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.WriteBytesWL(System.Byte[],REghZy.Streams.IDataOutput)">
+            <summary>
+            Reads 2 bytes (being the length of a string) as a short value, and reads that many bytes
+            </summary>
+            <param name="output"></param>
+            <returns></returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Packeting.PacketUtils.ReadBytesWL(REghZy.Streams.IDataInput)">
+            <summary>
+            Reads 2 bytes (being the length of a string) as a short value, and reads that many bytes
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="T:REghZy.Streams.BlockingStream">
+            <summary>
+            A stream wrapper that supports blocking reading
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.BlockingStream.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads from the stream, blocking until it reads the given count
+            </summary>
+            <param name="buffer">The buffer to read into</param>
+            <param name="offset">The offset to start reading into the buffer</param>
+            <param name="count">The exact number of bytes to read</param>
+            <returns>Exactly the specified number of bytes</returns>
+        </member>
+        <member name="M:REghZy.Streams.BlockingStream.ReadByte">
+            <summary>
+            Blocks until a single byte can be read
+            </summary>
+            <returns>A single byte</returns>
+        </member>
+        <member name="T:REghZy.Streams.DataInputStream">
+            <summary>
+            A class for reading primitive objects from a stream
+            <para>
+            Most method have repeated code for speed reasons...
+            </para>
+            </summary>
+        </member>
+        <member name="F:REghZy.Streams.DataInputStream.buffer8">
+            <summary>
+            A small buffer for reading into
+            </summary>
+        </member>
+        <member name="T:REghZy.Streams.DataOutputOutput">
+            <summary>
+            A class for writing primitive objects to a stream
+            <para>
+            Most method have repeated code for speed reasons...
+            </para>
+            </summary>
+        </member>
+        <member name="F:REghZy.Streams.DataOutputOutput.buffer">
+            <summary>
+            A temporary buffer used for writing
+            </summary>
+        </member>
+        <member name="T:REghZy.Streams.DataStream">
+            <summary>
+            An base class for holding always-opened data input/output streams,
+            and also providing a counter for the number of readable bytes
+            </summary>
+        </member>
+        <member name="P:REghZy.Streams.DataStream.Stream">
+            <summary>
+            The actual stream that this connection is built on
+            </summary>
+        </member>
+        <member name="P:REghZy.Streams.DataStream.Input">
+            <summary>
+            The data input stream (for reading)
+            </summary>
+        </member>
+        <member name="P:REghZy.Streams.DataStream.Output">
+            <summary>
+            The data output stream (for writing)
+            </summary>
+        </member>
+        <member name="P:REghZy.Streams.DataStream.BytesAvailable">
+            <summary>
+            Gets the number of bytes that can be read without blocking
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.DataStream.CanRead">
+            <summary>
+            Whether there are any bytes in the input stream
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:REghZy.Streams.DataStream.FlushWrite">
+            <summary>
+            Flushes the write buffer
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.DataStream.Dispose">
+            <summary>
+            Disposes the internal stream
+            </summary>
+        </member>
+        <member name="T:REghZy.Streams.IDataInput">
+            <summary>
+            An interface for reading primitive data from a stream
+            <para>
+            The values are unsigned because you can easily cast between signed and
+            unsigned, and still maintain the correct value (even with negative values)
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZy.Streams.IDataInput.Stream">
+            <summary>
+            The stream that this data input uses
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.Close">
+            <summary>
+            Closes the stream
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.Read(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads the given number of bytes from the stream
+            </summary>
+            <param name="buffer">The buffer to read into</param>
+            <param name="offset">The offset in the buffer</param>
+            <param name="count">The number of bytes to read</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadFully(System.Byte[])">
+            <summary>
+            Reads the exact number of bytes (specified by the given buffer's size) into the buffer (starting at 0)
+            <para>
+            Invoking this is the exact same as invoking <see cref="M:REghZy.Streams.IDataInput.ReadFully(System.Byte[],System.Int32,System.Int32)"/>, 
+            where the offset is 0 and the length is the given buffer's length
+            </para>
+            </summary>
+            <param name="buffer">The buffer to put the bytes into</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadFully(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Reads the exact given number of bytes into the given buffer (starting at the given offset)
+            <para>
+            The size of the buffer WILL NOT be checked, so it will throw an out of bounds exception if you mess up
+            </para>
+            </summary>
+            <param name="buffer">The buffer to put bytes into</param>
+            <param name="offset">The index specifying where to start writing into the buffer (inclusive)</param>
+            <param name="length">The number of bytes to read (e.g 4 for an integer, 2 for a short, etc)</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadBool">
+            <summary>
+            Reads 1 byte and return true if its value is 1, otherwise false
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadEnum8``1">
+            <summary>
+            Reads 1 byte and converts it to an enum. This requires that the enum type's size is equal to the 
+            size of a byte, otherwise you may lose the extra data (e.g if the enum's value is above s127/u255), 
+            resulting in undefined behaviour
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <returns>The enum itself</returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadEnum16``1">
+            <summary>
+            Reads 2 bytes and converts it to an enum. This requires that the enum type's size is smaller than or equal to the 
+            size of a short/ushort, otherwise you may lose the extra data, resulting in undefined behaviour
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <returns>The enum itself</returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadEnum32``1">
+            <summary>
+            Reads 4 bytes and converts it to an enum. This requires that the enum type's size is smaller than or equal to the 
+            size of a int/uint, otherwise you may lose the extra data, resulting in undefined behaviour
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <returns>The enum itself</returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadEnum64``1">
+            <summary>
+            Reads 8 bytes and converts it to an enum. This requires that the enum type's size is smaller than or equal to the 
+            size of a long/ulong, otherwise you may lose the extra data, resulting in undefined behaviour
+            </summary>
+            <typeparam name="T">The enum type</typeparam>
+            <returns>The enum itself</returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadByte">
+            <summary>
+            Reads 1 unsigned <see cref="T:System.Byte"/> (8 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadSByte">
+            <summary>
+            Reads 1 signed <see cref="T:System.SByte"/> (1 sign bit + 7 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadShort">
+            <summary>
+            Reads 2 bytes and joins them into a <see cref="T:System.Int16"/> value (1 sign bit + 15 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadUShort">
+            <summary>
+            Reads 2 bytes and joins them into a <see cref="T:System.UInt16"/> value (16 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadInt">
+            <summary>
+            Reads 4 bytes and joins them into an <see cref="T:System.Int32"/> value (1 sign bit + 31 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadUInt">
+            <summary>
+            Reads 4 bytes and joins them into a <see cref="T:System.UInt32"/> value (16 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadLong">
+            <summary>
+            Reads 8 bytes and joins them into a <see cref="T:System.Int64"/> value (1 sign bit + 63 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadULong">
+            <summary>
+            Reads 8 bytes and joins them into a <see cref="T:System.UInt64"/> value (64 value bits)
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadFloat">
+            <summary>
+            Reads 4 bytes, joins them into a <see cref="T:System.UInt32"/> value, and uses unsafe code to cast it to a <see cref="T:System.Single"/>
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadDouble">
+            <summary>
+            Reads 8 bytes, joins them into a <see cref="T:System.UInt64"/> value, and uses unsafe code to cast it to a <see cref="T:System.Double"/>
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadCharUTF16">
+            <summary>
+            Reads 2 bytes, joins them into a <see cref="T:System.UInt16"/> value, and casts it to a <see cref="T:System.Char"/>
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadCharUTF8">
+            <summary>
+            Reads 1 byte (low byte), and casts it to a <see cref="T:System.Char"/>
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadStringUTF16(System.Int32)">
+            <summary>
+            Reads the given number of characters, and joins them into a string
+            <para>
+            Invoking this is the exact same as invoking <see cref="M:REghZy.Streams.IDataInput.ReadCharsUTF16(System.Int32)"/>, only passing the char array into the string's constructor
+            </para>
+            </summary>
+            <param name="length">The number of characters to read</param>
+            <returns></returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadStringUTF8(System.Int32)">
+            <summary>
+            Reads the given number of characters, and joins them into a string
+            <para>
+            Invoking this is the exact same as invoking <see cref="M:REghZy.Streams.IDataInput.ReadCharsUTF16(System.Int32)"/>, only passing the char array into the string's constructor
+            </para>
+            </summary>
+            <param name="length">The number of characters to read</param>
+            <returns></returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadCharsUTF16(System.Int32)">
+            <summary>
+            Reads the given number of characters into a character array. This reads UTF16 chars, so 
+            each character is 2 bytes, meaning, reading 10 chars will read 20 bytes
+            </summary>
+            <param name="length"></param>
+            <returns></returns>
+        </member>
+        <member name="M:REghZy.Streams.IDataInput.ReadCharsUTF8(System.Int32)">
+            <summary>
+            Reads the given number of characters into a character array. This reads UTF8 chars, so 
+            each character is 1 bytes, meaning, reading 10 chars will read 10 bytes
+            </summary>
+            <param name="length">The number of chars (and therefore bytes) to read</param>
+            <returns>
+            An array with the exact same size of the given length
+            </returns>
+        </member>
+        <member name="T:REghZy.Streams.IDataOutput">
+            <summary>
+            An interface for writing primitive data to a stream
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.Flush">
+            <summary>
+            Flushes the data to the stream
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.Close">
+            <summary>
+            Closes the stream
+            </summary>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.Write(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            Writes the given number of bytes, starting at the given offset, from the given buffer
+            </summary>
+            <param name="buffer">The buffer to write data from</param>
+            <param name="offset">The index to start reading from the buffer</param>
+            <param name="count">The number of bytes to write</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteBoolean(System.Boolean)">
+            <summary>
+            Writes a boolean value (1 byte)
+            </summary>
+            <param name="val"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteEnum8``1(``0)">
+            <summary>
+            Writes an enum value as a byte
+            </summary>
+            <typeparam name="TEnum"></typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteEnum16``1(``0)">
+            <summary>
+            Writes an enum value as a short (2 bytes)
+            </summary>
+            <typeparam name="TEnum"></typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteEnum32``1(``0)">
+            <summary>
+            Writes an enum value as an integer (4 bytes)
+            </summary>
+            <typeparam name="TEnum"></typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteEnum64``1(``0)">
+            <summary>
+            Writes an enum value as a long value (8 bytes)
+            </summary>
+            <typeparam name="TEnum"></typeparam>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteByte(System.Byte)">
+            <summary>
+            Writes a single unsigned byte (0-255)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteSByte(System.SByte)">
+            <summary>
+            Writes a single signed byte (-128 to 127)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteShort(System.Int16)">
+            <summary>
+            Writes a signed short (2 bytes) (-32768 to 32767)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteUShort(System.UInt16)">
+            <summary>
+            Writes a short (2 bytes) (0 to 65535)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteInt(System.Int32)">
+            <summary>
+            Writes an integer (4 bytes) (-2,147,483,648 to 2,147,483,647)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteUInt(System.UInt32)">
+            <summary>
+            Writes an integer (4 bytes) (0 to 4,294,967,295)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteLong(System.Int64)">
+            <summary>
+            Writes a signed long (8 bytes) (-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteULong(System.UInt64)">
+            <summary>
+            Writes a long (8 bytes) (0 to 18,446,744,073,709,551,615)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteFloat(System.Single)">
+            <summary>
+            Writes a floating point number (4 bytes)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteDouble(System.Double)">
+            <summary>
+            Writes a double percision floating point number (8 bytes)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteCharUTF16(System.Char)">
+            <summary>
+            Writes a char (2 bytes, exact same as <see cref="M:REghZy.Streams.IDataOutput.WriteUShort(System.UInt16)"/>)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteCharUTF8(System.Char)">
+            <summary>
+            Writes a char (1 byte, exact same as <see cref="M:REghZy.Streams.IDataOutput.WriteByte(System.Byte)"/>)
+            </summary>
+            <param name="value"></param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteStringUTF16(System.String)">
+            <summary>
+            Writes all of the chars in the given string
+            </summary>
+            <param name="value">The string to write</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteStringUTF8(System.String)">
+            <summary>
+            Writes all of the chars in the given string
+            </summary>
+            <param name="value">The string to write</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteCharsUTF16(System.Char[])">
+            <summary>
+            Writes all of the chars in the given string. This writes 2 bytes per char;
+            first the high byte (bit 9-16), and then the low byte (bit 1-8), meaning 2 bytes per char
+            </summary>
+            <param name="chars">The chars to write</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WriteCharsUTF8(System.Char[])">
+            <summary>
+            Writes all of the chars in the given string. This only writes the low byte of 
+            the char (bit 1-8), and does not send the high byte. Meaning, only 1 byte per char
+            </summary>
+            <param name="chars">The chars to write</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WritePtrUTF16(System.Char*,System.Int32,System.Int32)">
+            <summary>
+            Writes '2 * length' bytes from the given pointer (starting, in the pointer, at the given offset)
+            </summary>
+            <param name="ptr">The pointer to get the chars from</param>
+            <param name="offset">The offset within the pointer (usually this starts at 0)</param>
+            <param name="length">The number of characters to write (not bytes, characters)</param>
+        </member>
+        <member name="M:REghZy.Streams.IDataOutput.WritePtrUTF8(System.Char*,System.Int32,System.Int32)">
+            <summary>
+            Writes 'length' bytes from the given pointer (starting, in the pointer, at the given offset)
+            </summary>
+            <param name="cptr">The pointer to get the chars from</param>
+            <param name="offset">The offset within the pointer (usually this starts at 0)</param>
+            <param name="length">The number of characters/bytes to write</param>
+        </member>
+        <member name="T:REghZyPacketSystem.Systems.Handling.IHandler">
+            <summary>
+            An interface for a packet handler
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.Handling.IHandler.CanProcess(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Whether this handler can process the given packet
+            </summary>
+            <param name="packet"></param>
+            <returns>
+            <see langword="true"/> if it can (meaning <see cref="M:REghZyPacketSystem.Systems.Handling.IHandler.Handle(REghZyPacketSystem.Packeting.Packet)"/> could be executed without problem),
+            otherwise <see langword="false"/>
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.Handling.IHandler.Handle(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Handles the packet
+            </summary>
+            <param name="packet">The packet (not null)</param>
+            <returns>
+            <see langword="true"/> if the packet is handled, and shouldn't be processed anymore, otherwise <see langword="false"/>
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.Handling.IListener.OnReceived(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Called when the given packet is received
+            </summary>
+            <param name="packet">The packet (not null)</param>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.Handling.Priority.HIGHEST">
+            <summary>
+            This packet must be received first ALL OF THE TIME
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.Handling.Priority.HIGH">
+            <summary>
+            This packet must be received very soon after coming in
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.Handling.Priority.NORMAL">
+            <summary>
+            Doesn't really matter. This is typically used for monitoring
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.Handling.Priority.LOW">
+            <summary>
+            Really doesn't matter at all
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.Handling.Priority.LOWEST">
+            <summary>
+            Same as low, but even lower
+            </summary>
+        </member>
+        <member name="T:REghZyPacketSystem.Systems.Handling.PriorityMap">
+            <summary>
+            A map, mapping a priority to a collection of listeners and handlers
+            <para>
+            Listeners of the same priority as handlers will receive packets first, e.g a listener with priotity 1 
+            will receive packets first, then handlers or priority 1 will receive packets. But, listeners of priority 2 will
+            receive packets AFTER handlers of priority 1
+            </para>
+            <para>
+            So the order of received packets being delivered is: 
+            Listeners(HIGHEST), Handers(HIGHEST), Listeners(HIGH), Handers(HIGH), Listeners(NORMAL),
+            Handers(NORMAL), Listeners(LOW), Handers(LOW), Listeners(LOWEST), Handers(LOWEST), 
+            </para>
+            <para>
+            This means listeners have an overall higher priority than handlers of the same 
+            priority level, which may be useful for "sniffing" packets before they get handled
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.Handling.PriorityMap.DeliverPacket(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Delivers the given packet to all of the listeners and handlers, respecting their priority
+            </summary>
+            <param name="packet"></param>
+            <returns></returns>
+        </member>
+        <member name="T:REghZyPacketSystem.Systems.PacketNetwork">
+            <summary>
+            The packet network is what handles sending and receiving packets, and delivering received packets to listeners
+            <para>
+            At it's base level, it's just a wrapper for reading and writing packets from
+            a <see cref="T:REghZy.Streams.DataStream"/> (by holding packets in queues). It also contains 
+            a map of handlers and listeners too
+            </para>
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.PacketNetwork.readQueue">
+            <summary>
+            The packets that have been read/received from the connection, and are ready to be processed
+            </summary>
+        </member>
+        <member name="F:REghZyPacketSystem.Systems.PacketNetwork.sendQueue">
+            <summary>
+            The packets that have been created, and are ready to be sent to the connection
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.PacketNetwork.ReadQueue">
+            <summary>
+            The packets that have been read/received from the connection, and are ready to be processed
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.PacketNetwork.SendQueue">
+            <summary>
+            The packets that have been created, and are ready to be sent to the connection
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.PacketNetwork.Connection">
+            <summary>
+            The connection that this packet system uses
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.Start">
+            <summary>
+            Starts the packet system. By default, this just calls <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Connect"/>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.Stop">
+            <summary>
+            Stops the packet system. By default, this just calls <see cref="M:REghZyPacketSystem.Connections.BaseConnection.Disconnect"/>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.ReadNextPacket">
+            <summary>
+            Reads the next available packet, and enqueues it in <see cref="P:REghZyPacketSystem.Systems.PacketNetwork.ReadQueue"/>
+            </summary>
+            <returns>
+            True if a packet was read, otherwise false (if there wasn't enough data available to read a packet header)
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.ProcessReadQueue(System.Int32)">
+            <summary>
+            Processes/handles the given number of packets that are currently queued in <see cref="P:REghZyPacketSystem.Systems.PacketNetwork.ReadQueue"/>
+            </summary>
+            <param name="count">The number of packets to try and handle</param>
+            <returns>
+            The number of packets that were handled. This may not be equal to the given number of packets
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.ProcessSendQueue(System.Int32)">
+            <summary>
+            Writes the given number of packets queued in <see cref="P:REghZyPacketSystem.Systems.PacketNetwork.SendQueue"/>
+            </summary>
+            <param name="count">The number of packets to try and write</param>
+            <exception cref="T:REghZyPacketSystem.Exceptions.PacketWriteException"></exception>
+            <returns>
+            The number of packets that were handled. This may not be equal to the given number of packets
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.SendPacket(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Queues a packet to be sent (adds it to <see cref="P:REghZyPacketSystem.Systems.PacketNetwork.SendQueue"/>)
+            </summary>
+            <param name="packet"></param>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.PacketNetwork.SendPacketImmidiately(REghZyPacketSystem.Packeting.Packet)">
+            <summary>
+            Immidiately sends a packet to the connection in this packet system.
+            This simply calls <see cref="M:REghZyPacketSystem.Packeting.Packet.WritePacket(REghZyPacketSystem.Packeting.Packet,REghZy.Streams.IDataOutput)"/>
+            <para>
+            This method is blocking; you won't be able to do anything until ALL of the bytes have been written
+            </para>
+            </summary>
+            <param name="packet">The packet to send (non-null)</param>
+        </member>
+        <member name="T:REghZyPacketSystem.Systems.ThreadPacketNetwork">
+            <summary>
+            An extension to the <see cref="T:REghZyPacketSystem.Systems.PacketNetwork"/>, using a read and write thread to enqueue packets 
+            that have been read from the connection, and to also sending packets to the connection
+            <para>
+            This prevents the main/important thread from having to wait for packets to be written and read; now it
+            just has to process the packets (see below)
+            </para>
+            <para>
+            This does not poll/process any packets, that must be done manually (because packet handlers/listeners 
+            aren't thread safe), via the <see cref="M:REghZyPacketSystem.Systems.PacketNetwork.ProcessReadQueue(System.Int32)"/> method
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.WriteCount">
+            <summary>
+            The number of packets that the write thread should try to send each time
+            <para>
+            See the comments on <see cref="M:REghZyPacketSystem.Systems.PacketNetwork.ProcessSendQueue(System.Int32)"/>, this may not be the exact
+            number of packets that get written every time. The ability to write more than 1 is only for extra speed... maybe
+            </para>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.CanRead">
+            <summary>
+            Sets whether the read thread can run or not. If set to <see langword="false"/>, it will not stop 
+            the thread, it will simply sit at idle until this becomes <see langword="true"/>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.CanSend">
+            <summary>
+            Sets whether the send/write thread can run or not. If set to <see langword="false"/>, it will not stop 
+            the thread, it will simply sit at idle until this becomes <see langword="true"/>
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.PacketsRead">
+            <summary>
+            The exact number of packets that have been read
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.PacketsSent">
+            <summary>
+            The exact number of packets that have been sent
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.ReadThread">
+            <summary>
+            The thread used to read packets
+            </summary>
+        </member>
+        <member name="P:REghZyPacketSystem.Systems.ThreadPacketNetwork.SendThread">
+            <summary>
+            The thread used to send packets
+            </summary>
+        </member>
+        <member name="E:REghZyPacketSystem.Systems.ThreadPacketNetwork.OnPacketReadFailure">
+            <summary>
+            Called when an exception was thrown while reading a packet from the connection
+            <para>
+            This will be invoked from the read thread, therefore you must ensure your code is thread safe!
+            </para>
+            </summary>
+        </member>
+        <member name="E:REghZyPacketSystem.Systems.ThreadPacketNetwork.OnPacketWriteFailure">
+            <summary>
+            Called when an exception was thrown while writing a packet to the connection
+            <para>
+            This will be invoked from the write thread, therefore you must ensure your code is thread safe!
+            </para>
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.ThreadPacketNetwork.#ctor(REghZyPacketSystem.Connections.BaseConnection,System.Int32)">
+            <summary>
+            Creates a new instance of the threaded packet system
+            </summary>
+            <param name="connection"></param>
+            <param name="handler"></param>
+            <param name="writeCount"></param>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.ThreadPacketNetwork.Start">
+            <summary>
+            Starts the base packet system, and both the read and write threads
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.ThreadPacketNetwork.Stop">
+            <summary>
+            Fully stops both the reader and writer threads. They cannot be restarted!
+            </summary>
+        </member>
+        <member name="M:REghZyPacketSystem.Systems.ThreadPacketNetwork.TogglePause">
+            <summary>
+            Toggles whether reading and writing packets is paused
+            </summary>
+            <returns>
+            Whether read/writing is now paused or not. 
+            <see langword="false"/> means nothing can be read or written. 
+            <see langword="true"/> means packets can be read and written
+            </returns>
+        </member>
+        <member name="M:REghZyPacketSystem.Utils.ClassUtils.RunPacketCtor``1">
+            <summary>
+            Runs a packet's static constructor. Useful if you register your packet creator in there.
+            This method should usually be run before you start using packets, or packet systems
+            (e.g during app startup), otherwise the packets wont be registered :-)
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:REghZyPacketSystem.Utils.ClassUtils.RunPacketCtor(System.Type)">
+            <summary>
+            Runs a packet's static constructor. Useful if you register your packet creator in there.
+            This method should usually be run before you start using packets, or packet systems
+            (e.g during app startup), otherwise the packets wont be registered :-)
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:REghZyPacketSystem.Utils.ClassUtils.FindAndInitialiseAttributed(System.Type,System.Boolean)">
+            <summary>
+            Finds all types that use the <see cref="T:REghZyPacketSystem.Packeting.PacketImplementation"/> attribute, and inherit the <see cref="T:REghZyPacketSystem.Packeting.Packet"/> class
+            </summary>
+            <param name="checkInheritance"></param>
+            <returns></returns>
+        </member>
+        <member name="T:REghZyPacketSystem.Utils.EnumConversion`1">
+            <summary>
+            A class for converting between enum and primitives (int/short/etc)
+            </summary>
+            <typeparam name="TEnum"></typeparam>
+        </member>
+    </members>
+</doc>
