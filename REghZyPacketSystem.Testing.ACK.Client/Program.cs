@@ -2,6 +2,7 @@
 using System.Threading;
 using REghZyPacketSystem.Packeting;
 using REghZyPacketSystem.Serial;
+using REghZyPacketSystem.Sockets;
 using REghZyPacketSystem.Systems;
 using REghZyPacketSystem.Systems.Handling;
 
@@ -18,7 +19,9 @@ namespace REghZyPacketSystem.Testing.ACK.Client {
         public Program() {
             Packet.AutoRegister<Packet1Chat>();
             Packet.AutoRegister<Packet2Counter>();
-            this.system = new ThreadPacketSystem(new SerialConnection("COM21"));
+            // BaseConnection connection = SocketHelper.MakeConnectionToServer(System.Net.IPAddress.Any, 420);
+            BaseConnection connection = new SerialConnection("COM21");
+            this.system = new ThreadPacketSystem(connection);
             this.counter = new AckProcessor2Counter(this.system);
 
             this.system.OnReadAvailable += system => system.ProcessReadQueue();
@@ -30,7 +33,8 @@ namespace REghZyPacketSystem.Testing.ACK.Client {
 
             // this.system.SendPacketImmidiately(new Packet1Chat() {msg = "elloooo"});
 
-            this.system.Start();
+            this.system.StartThreads();
+            this.system.Connection.Connect();
 
             PrintResponce(this.counter.MakeRequestAsync(new Packet2Counter() {action = Packet2Counter.CountAction.incr}).Result);
             PrintResponce(this.counter.MakeRequestAsync(new Packet2Counter() {action = Packet2Counter.CountAction.incr}).Result);

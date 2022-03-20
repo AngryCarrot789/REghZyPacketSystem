@@ -18,11 +18,11 @@ namespace REghZyPacketSystem.Testing.ACK.Server {
         public Program() {
             Packet.AutoRegister<Packet1Chat>();
             Packet.AutoRegister<Packet2Counter>();
-            this.system = new ThreadPacketSystem(new SerialConnection("COM20"));
+            BaseConnection connection = new SerialConnection("COM20");
+            this.system = new ThreadPacketSystem(connection);
             this.counter = new AckProcessor2Counter(this.system);
 
             // don't care about processing on another thread
-
             this.system.OnReadAvailable += OnSystemOnOnReadAvailable;
             this.system.OnPacketReadError += (sys, e) => Console.WriteLine("Error reading: " + e);
             this.system.OnPacketWriteError += (sys, e) => Console.WriteLine("Error writing: " + e);
@@ -30,7 +30,8 @@ namespace REghZyPacketSystem.Testing.ACK.Server {
                 Console.WriteLine($"Received {p.GetType().Name} -> {p}");
             }, Priority.HIGHEST);
 
-            this.system.Start();
+            this.system.StartThreads();
+            this.system.Connection.Connect();
 
             while (true) {
                 Thread.Sleep(100);

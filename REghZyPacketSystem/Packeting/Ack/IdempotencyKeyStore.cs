@@ -321,7 +321,7 @@ namespace REghZyPacketSystem.Packeting.Ack {
             }
 
             public override string ToString() {
-                return $"[{this.range.min}-{this.range.max}]";
+                return $"RangeNode({this.range.min} -> {this.range.max})";
             }
         }
 
@@ -377,6 +377,10 @@ namespace REghZyPacketSystem.Packeting.Ack {
 
             public bool IsBelow(uint value) {
                 return value < this.min;
+            }
+
+            public override string ToString() {
+                return $"Range({this.min} -> {this.max})";
             }
         }
     }

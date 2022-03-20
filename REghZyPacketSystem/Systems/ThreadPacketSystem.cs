@@ -2,8 +2,6 @@
 using System.Threading;
 using REghZyPacketSystem.Exceptions;
 
-#pragma warning disable 1591
-
 namespace REghZyPacketSystem.Systems {
     /// <summary>
     /// An extension to the <see cref="PacketSystem"/>, using a read and write thread to enqueue packets
@@ -29,15 +27,17 @@ namespace REghZyPacketSystem.Systems {
         protected volatile bool canRead;
         protected volatile bool canSend;
 
-        protected volatile int writeCount;
+        protected volatile int writePerTick;
         protected bool pauseThreads;
 
         private int readCount;
         private int sendCount;
-        private volatile int threadSleepTime;
+        private volatile int intervalTime;
+        private volatile int sleepTime;
         private volatile bool disposed;
 
-        private readonly object locker = new object();
+        private readonly object readLock = new object();
+        private readonly object writeLock = new object();
 
         /// <summary>
         /// Whether this has been disposed or not
@@ -47,14 +47,31 @@ namespace REghZyPacketSystem.Systems {
             private set => this.disposed = value;
         }
 
-        public int ThreadSleepTime {
-            get => this.threadSleepTime;
+        /// <summary>
+        /// The amount of time to pause the read/write threads per tick while reading/writing is enabled
+        /// </summary>
+        public int ThreadIntervalDelayTime {
+            get => this.intervalTime;
             set {
                 if (value < 0) {
                     throw new ArgumentException("Value must be above or equal to 0", nameof(value));
                 }
 
-                this.threadSleepTime = value;
+                this.intervalTime = value;
+            }
+        }
+
+        /// <summary>
+        /// The amount of time to pause the read/write threads while reading/writing is disabled. By default, this is 50 (milliseconds)
+        /// </summary>
+        public int ThreadSleepTime {
+            get => this.sleepTime;
+            set {
+                if (value < 0) {
+                    throw new ArgumentException("Value must be above or equal to 0", nameof(value));
+                }
+
+                this.sleepTime = value;
             }
         }
 
@@ -65,9 +82,9 @@ namespace REghZyPacketSystem.Systems {
         /// number of packets that get written every time. The ability to write more than 1 is only for extra speed... maybe
         /// </para>
         /// </summary>
-        public int WriteCount {
-            get => this.writeCount;
-            set => this.writeCount = value;
+        public int WritePerTick {
+            get => this.writePerTick;
+            set => this.writePerTick = value;
         }
 
         /// <summary>
@@ -162,8 +179,9 @@ namespace REghZyPacketSystem.Systems {
         /// <summary>
         /// Creates a new instance of the threaded packet system
         /// </summary>
-        public ThreadPacketSystem(BaseConnection connection, int writeCount = 3) : base(connection) {
-            this.threadSleepTime = 1;
+        public ThreadPacketSystem(BaseConnection connection, int writePerTick = 3) : base(connection) {
+            this.intervalTime = 1;
+            this.sleepTime = 50;
             this.readThread = new Thread(ReadMain) {
                 Name = $"REghZy Read Thread {++READ_THREAD_COUNT}"
             };
@@ -172,34 +190,14 @@ namespace REghZyPacketSystem.Systems {
                 Name = $"REghZy Write Thread {++SEND_THREAD_COUNT}"
             };
 
-            this.writeCount = writeCount;
+            this.writePerTick = writePerTick;
             this.Paused = true;
         }
 
         /// <summary>
-        /// Starts the base packet system, and both the read and write threads
+        /// Starts the threads. This should only be invoked once, see <see cref="Paused"/> to pause/unpause the threads
         /// </summary>
-        public override void Start() {
-            base.Start();
-            if (this.shouldRun) {
-                this.Paused = false;
-            }
-            else {
-                StartThreads();
-            }
-        }
-
-        /// <summary>
-        /// Disconnects from the connection, and stops the read and write threads
-        /// </summary>
-        public override void Stop() {
-            this.Paused = true;
-            lock (this.locker) {
-                base.Stop();
-            }
-        }
-
-        public void StartThreads() {
+        public virtual void StartThreads() {
             if (this.shouldRun) {
                 throw new Exception("Cannot re-start threads after they've been killed");
             }
@@ -211,7 +209,13 @@ namespace REghZyPacketSystem.Systems {
             this.sendThread.Start();
         }
 
-        public void KillThreads() {
+        /// <summary>
+        /// Kills the threads making them un-restartable. This should only be invoked once, see <see cref="Paused"/> to pause/unpause threads
+        /// <para>
+        /// This effectively disposes the thread packet system
+        /// </para>
+        /// </summary>
+        public virtual void KillThreads() {
             if (!this.shouldRun) {
                 throw new Exception("Threads have not been started yet");
             }
@@ -234,7 +238,7 @@ namespace REghZyPacketSystem.Systems {
         /// <summary>
         /// Sets <see cref="Paused"/> to false, allowing the threads to read and write again
         /// </summary>
-        public void UnpauseThreads() {
+        public void ResumeThreads() {
             this.Paused = false;
         }
 
@@ -243,23 +247,24 @@ namespace REghZyPacketSystem.Systems {
                 while (this.canRead) {
                     bool locked = false;
                     bool read;
-                    object lck = this.locker;
+                    object lck = this.readLock;
                     try {
                         Monitor.Enter(lck, ref locked);
                         // absolute last resort to ensure a read can happen
-                        if (!this.connection.IsConnected || !this.canRead) {
+                        if (this.connection.IsConnected && this.canRead) {
+                            read = ReadNextPacket();
+                        }
+                        else {
                             break;
                         }
-
-                        read = ReadNextPacket();
                     }
                     catch (PacketCreationException e) {
-                        #if DEBUG
+#if DEBUG
                         throw e;
-                        #else
+#else
                         this.OnPacketReadError?.Invoke(this, e);
                         continue;
-                        #endif
+#endif
                     }
                     finally {
                         if (locked) {
@@ -272,13 +277,11 @@ namespace REghZyPacketSystem.Systems {
                         this.OnReadAvailable?.Invoke(this);
                     }
                     else {
-                        DoThreadDelay();
+                        DoTickDelay();
                     }
                 }
 
-                // A big wait time, because it's very unlikely that the ability to read packets
-                // will be changed in a very tight time window
-                Thread.Sleep(50);
+                DoSleepDelay();
             }
         }
 
@@ -287,23 +290,24 @@ namespace REghZyPacketSystem.Systems {
                 while (this.canSend) {
                     bool locked = false;
                     int write;
-                    object lck = this.locker;
+                    object lck = this.writeLock;
                     try {
                         Monitor.Enter(lck, ref locked);
                         // absolute last resort to ensure a write can happen
-                        if (!this.connection.IsConnected || !this.canSend) {
+                        if (this.connection.IsConnected && this.canSend) {
+                            write = ProcessSendQueue(this.writePerTick);
+                        }
+                        else {
                             break;
                         }
-
-                        write = ProcessSendQueue(this.writeCount);
                     }
                     catch (PacketWriteException e) {
-                        #if DEBUG
+#if DEBUG
                         throw e;
-                        #else
+#else
                         this.OnPacketWriteError?.Invoke(this, e);
                         continue;
-                        #endif
+#endif
                     }
                     finally {
                         if (locked) {
@@ -312,34 +316,42 @@ namespace REghZyPacketSystem.Systems {
                     }
 
                     if (write == 0) {
-                        DoThreadDelay();
+                        DoTickDelay();
                     }
                     else {
                         this.sendCount += write;
                     }
                 }
 
-                // A big wait time, because it's very unlikely that the ability to
-                // write packets will be changed in a very tight time window... that
-                // could change though... maybe... not really
-                Thread.Sleep(50);
+                DoSleepDelay();
             }
         }
 
         /// <summary>
         /// Disconnects and kills the threads used with this Threaded packet system
         /// </summary>
-        public void Dispose() {
+        public virtual void Dispose() {
             KillThreads();
-            Stop();
         }
 
         /// <summary>
         /// Used by the read and write threads to delay them, so that they aren't running at 100% all the time, consuming resources
         /// </summary>
-        protected virtual void DoThreadDelay() {
+        protected virtual void DoTickDelay() {
             // this will actually delay for about 10-16ms~ average, due to thread time slicing stuff
-            Thread.Sleep(this.threadSleepTime);
+            Thread.Sleep(this.intervalTime);
+        }
+
+        /// <summary>
+        /// Used by the read and write threads to delay them while <see cref="CanSend"/>/<see cref="CanRead"/> is false
+        /// <para>
+        /// This will usually pause for quite a long time (10-50ms), but it can be removed
+        /// </para>
+        /// </summary>
+        protected virtual void DoSleepDelay() {
+            // A big wait time, because it's very unlikely that the ability to
+            // read/write packets will be changed in a very tight time window... 
+            Thread.Sleep(this.sleepTime);
         }
     }
 }

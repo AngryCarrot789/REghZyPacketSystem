@@ -42,10 +42,15 @@ namespace REghZyPacketSystem.Sockets {
 
         public EndPoint RemoteEndPoint => this.client.RemoteEndPoint;
 
-        public SocketToClientConnection(Socket client, Socket server) {
+        public SocketToClientConnection(Socket client, Socket server, bool useLittleEndianness = false) {
             this.client = client;
             this.server = server;
-            this.stream = new NetworkDataStream(this.client);
+            if (useLittleEndianness) {
+                this.stream = NetworkDataStream.LittleEndianness(this.client);
+            }
+            else {
+                this.stream = NetworkDataStream.BigEndianness(this.client);
+            }
         }
 
         public override void Connect() {

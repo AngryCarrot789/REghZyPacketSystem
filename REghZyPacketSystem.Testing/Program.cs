@@ -33,8 +33,8 @@ namespace REghZyPacketSystem.Testing {
                 this.systemB.SendPacket(new Packet1Chat() {msg = "BBBBBBBBBBBB!!!"});
             });
 
-            this.systemA.Start();
-            this.systemB.Start();
+            this.systemA.Connection.Connect();
+            this.systemB.Connection.Connect();
 
             this.systemA.OnReadAvailable += system => system.ProcessReadQueue();
             this.systemB.OnReadAvailable += system => system.ProcessReadQueue();

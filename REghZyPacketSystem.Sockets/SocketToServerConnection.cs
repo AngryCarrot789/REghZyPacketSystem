@@ -45,6 +45,11 @@ namespace REghZyPacketSystem.Sockets {
             }
         }
 
+        /// <summary>
+        /// Whether to use little endianness or big endianness (aka the order of bytes in big data types)
+        /// </summary>
+        public bool UseLittleEndianness { get; set; }
+
         public SocketToServerConnection(EndPoint endPoint, SocketType socketType = SocketType.Stream, ProtocolType protocol = ProtocolType.Tcp) {
             this.socket = new Socket(socketType, protocol);
             this.socket.SendTimeout = 30000;
@@ -85,7 +90,7 @@ namespace REghZyPacketSystem.Sockets {
             }
 
             try {
-                this.stream = new NetworkDataStream(this.socket);
+                this.stream = CreateDataStream();
             }
             catch (Exception e) {
                 throw new IOException("Failed to create network data stream", e);
@@ -119,7 +124,7 @@ namespace REghZyPacketSystem.Sockets {
             }
 
             try {
-                this.stream = new NetworkDataStream(this.socket);
+                this.stream = CreateDataStream();
             }
             catch (Exception e) {
                 throw new IOException("Failed to create network data stream", e);
@@ -147,6 +152,15 @@ namespace REghZyPacketSystem.Sockets {
             this.stream.Dispose();
             this.stream = null;
             this.isConnected = false;
+        }
+
+        protected NetworkDataStream CreateDataStream() {
+            if (this.UseLittleEndianness) {
+                return NetworkDataStream.LittleEndianness(this.socket);
+            }
+            else {
+                return NetworkDataStream.BigEndianness(this.socket);
+            }
         }
     }
 }

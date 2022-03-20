@@ -34,7 +34,7 @@ namespace REghZyPacketSystem.Testing {
         }
 
         public override void WritePayloadToServer(IDataOutput output) {
-            output.WriteEnum8(this.action);
+            output.WriteEnum08(this.action);
         }
 
         public override void WritePayloadToClient(IDataOutput output) {

@@ -18,6 +18,11 @@ namespace REghZyPacketSystem.Serial {
         /// </summary>
         public SerialPort Port => this.port;
 
+        /// <summary>
+        /// Whether to use little endianness or big endianness (aka the order of bytes in big data types)
+        /// </summary>
+        public bool UseLittleEndianness { get; set; }
+
         public SerialConnection(string port, int baud = 9600, Parity parity = Parity.None, int dataBits = 8, StopBits stopBits = StopBits.One) {
             this.port = new SerialPort(port, baud, parity, dataBits, stopBits);
             this.port.Handshake = Handshake.None;
@@ -52,7 +57,13 @@ namespace REghZyPacketSystem.Serial {
         public override void Connect() {
             this.port.Open();
             this.port.DtrEnable = true;
-            this.stream = new SerialDataStream(this.port);
+            if (this.UseLittleEndianness) {
+                this.stream = SerialDataStream.LittleEndianness(this.port);
+            }
+            else {
+                this.stream = SerialDataStream.BigEndianness(this.port);
+            }
+
             ClearBuffers();
         }
 

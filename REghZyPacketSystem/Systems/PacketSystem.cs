@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using REghZy.Streams;
 using REghZyPacketSystem.Exceptions;
 using REghZyPacketSystem.Packeting;
@@ -55,31 +56,17 @@ namespace REghZyPacketSystem.Systems {
         public bool IsConnected => this.connection.IsConnected;
 
         /// <summary>
-        /// Creates a new instance of a packet system
+        /// Creates a new instance of a packet system, using the given connection
         /// </summary>
         public PacketSystem(BaseConnection connection) {
             if (connection == null) {
-                throw new NullReferenceException("Connection cannot be null");
+                throw new ArgumentNullException(nameof(connection), "Connection cannot be null");
             }
 
             this.connection = connection;
             this.readQueue = new Queue<Packet>();
             this.sendQueue = new Queue<Packet>();
             this.map = new ListenerMap();
-        }
-
-        /// <summary>
-        /// Starts the packet system. By default, this just calls <see cref="BaseConnection.Connect"/>
-        /// </summary>
-        public virtual void Start() {
-            this.connection.Connect();
-        }
-
-        /// <summary>
-        /// Stops the packet system. By default, this just calls <see cref="BaseConnection.Disconnect"/>
-        /// </summary>
-        public virtual void Stop() {
-            this.connection.Disconnect();
         }
 
         /// <summary>
@@ -239,6 +226,10 @@ namespace REghZyPacketSystem.Systems {
         /// True if a packet was read, otherwise false (if there wasn't enough data available to read a packet header)
         /// </returns>
         public bool ReadNextPacket() {
+            if (this.connection == null) {
+                throw new NullReferenceException("Connection is unavailable");
+            }
+
             long available = this.connection.Stream.BytesAvailable;
             if (available < Packet.MinimumHeaderSize)
                 return false;
@@ -269,6 +260,10 @@ namespace REghZyPacketSystem.Systems {
         /// The number of packets that were queued in <see cref="ReadQueue"/>
         /// </returns>
         public int ReadNextPackets(int count = 10) {
+            if (this.connection == null) {
+                throw new NullReferenceException("Connection is unavailable");
+            }
+
             int read = 0;
             lock (this.readQueue) {
                 IDataInput input = this.connection.Stream.Input;
@@ -332,6 +327,10 @@ namespace REghZyPacketSystem.Systems {
         /// The number of packets that were handled. This may not be equal to the given number of packets
         /// </returns>
         public int ProcessSendQueue(int count = 5) {
+            if (this.connection == null) {
+                throw new NullReferenceException("Connection is unavailable");
+            }
+
             lock (this.sendQueue) {
                 Queue<Packet> queue = this.sendQueue;
                 count = Math.Min(queue.Count, count);

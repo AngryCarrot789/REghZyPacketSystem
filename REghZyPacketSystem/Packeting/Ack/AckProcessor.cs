@@ -53,9 +53,10 @@ namespace REghZyPacketSystem.Packeting.Ack {
         }
 
         /// <summary>
-        /// States whether to process packets that use a key that's already been processed
+        /// Whether to process packets that use an idempotency key that has already been processed
         /// <para>
-        /// This is false by default
+        /// This is false by default, which is the most useful option; 
+        /// re-processing the same packet could be dangerous
         /// </para>
         /// </summary>
         [ServerSide]
@@ -166,7 +167,6 @@ namespace REghZyPacketSystem.Packeting.Ack {
         /// <returns>
         /// The packet sent back from the server
         /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [ClientSide]
         public async Task<TPacket> MakeRequestAsync(TPacket packet) {
             return await ReceiveResponceAsync(SendRequest(packet));

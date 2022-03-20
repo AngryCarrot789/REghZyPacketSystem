@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\REghZyPacketSystem.Sockets\REghZyPacketSystem.Sockets.csproj" />
       <ProjectReference Include="..\REghZyPacketSystem.Testing\REghZyPacketSystem.Testing.csproj" />
     </ItemGroup>
 

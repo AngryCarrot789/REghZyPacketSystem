@@ -122,8 +122,12 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is already connected
         /// </returns>
-        public static SocketToServerConnection MakeConnectionToServer(EndPoint serverEndPoint) {
+        public static SocketToServerConnection MakeConnectionToServer(EndPoint serverEndPoint, bool useLittleEndianness = false) {
             SocketToServerConnection connection = new SocketToServerConnection(serverEndPoint);
+            if (useLittleEndianness) {
+                connection.UseLittleEndianness = true;
+            }
+
             connection.Connect();
             return connection;
         }
@@ -137,8 +141,12 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is already connected
         /// </returns>
-        public static async Task<SocketToServerConnection> MakeConnectionToServerAsync(EndPoint serverEndPoint) {
+        public static async Task<SocketToServerConnection> MakeConnectionToServerAsync(EndPoint serverEndPoint, bool useLittleEndianness = false) {
             SocketToServerConnection connection = new SocketToServerConnection(serverEndPoint);
+            if (useLittleEndianness) {
+                connection.UseLittleEndianness = true;
+            }
+
             await connection.ConnectAsync();
             return connection;
         }
@@ -152,8 +160,12 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is already connected
         /// </returns>
-        public static SocketToServerConnection MakeConnectionToServer(IPAddress ip, int port) {
+        public static SocketToServerConnection MakeConnectionToServer(IPAddress ip, int port, bool useLittleEndianness = false) {
             SocketToServerConnection connection = new SocketToServerConnection(ip, port);
+            if (useLittleEndianness) {
+                connection.UseLittleEndianness = true;
+            }
+
             connection.Connect();
             return connection;
         }
@@ -167,8 +179,12 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is already connected
         /// </returns>
-        public static async Task<SocketToServerConnection> MakeConnectionToServerAsync(IPAddress ip, int port) {
+        public static async Task<SocketToServerConnection> MakeConnectionToServerAsync(IPAddress ip, int port, bool useLittleEndianness = false) {
             SocketToServerConnection connection = new SocketToServerConnection(ip, port);
+            if (useLittleEndianness) {
+                connection.UseLittleEndianness = true;
+            }
+
             await connection.ConnectAsync();
             return connection;
         }
@@ -185,9 +201,9 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is connected to client
         /// </returns>
-        public static SocketToClientConnection AcceptClientConnection(Socket server) {
+        public static SocketToClientConnection AcceptClientConnection(Socket server, bool useLittleEndianness = false) {
             Socket client = server.Accept();
-            return new SocketToClientConnection(client, server);
+            return new SocketToClientConnection(client, server, useLittleEndianness);
         }
 
         /// <summary>
@@ -202,9 +218,9 @@ namespace REghZyPacketSystem.Sockets {
         /// <returns>
         /// A connection that is connected to client
         /// </returns>
-        public static async Task<SocketToClientConnection> AcceptClientConnectionAsync(Socket server) {
+        public static async Task<SocketToClientConnection> AcceptClientConnectionAsync(Socket server, bool useLittleEndianness = false) {
             Socket client = await server.AcceptAsync();
-            return new SocketToClientConnection(client, server);
+            return new SocketToClientConnection(client, server, useLittleEndianness);
         }
     }
 }

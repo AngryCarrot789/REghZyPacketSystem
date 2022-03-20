@@ -1,7 +1,10 @@
 ﻿namespace REghZyPacketSystem.Systems.Handling {
+    /// <summary>
+    /// Packet receiving priority
+    /// </summary>
     public enum Priority {
         /// <summary>
-        /// This packet must be received first ALL OF THE TIME
+        /// This packet must be received first
         /// </summary>
         HIGHEST = 0,
 
@@ -11,12 +14,12 @@
         HIGH = 1,
 
         /// <summary>
-        /// Doesn't really matter. This is typically used for monitoring
+        /// Just normal; this is typically used for monitoring
         /// </summary>
         NORMAL = 2,
         
         /// <summary>
-        /// Really doesn't matter at all
+        /// Quite low
         /// </summary>
         LOW = 3,
 

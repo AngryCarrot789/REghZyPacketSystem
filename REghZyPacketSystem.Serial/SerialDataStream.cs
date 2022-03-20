@@ -15,7 +15,19 @@ namespace REghZyPacketSystem.Serial {
 
         public override long BytesAvailable => (long)this.port.BytesToRead;
 
+        public static SerialDataStream BigEndianness(SerialPort port) {
+            return new SerialDataStream(port, new DataInputStream(), new DataOutputStream());
+        }
+
+        public static SerialDataStream LittleEndianness(SerialPort port) {
+            return new SerialDataStream(port, new DataInputStreamLE(), new DataOutputStreamLE());
+        }
+
         public SerialDataStream(SerialPort port) : base(port.BaseStream) {
+            this.port = port;
+        }
+
+        private SerialDataStream(SerialPort port, IDataInput input, IDataOutput output) : base(port.BaseStream, input, output) {
             this.port = port;
         }
 
